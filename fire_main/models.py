@@ -6,10 +6,12 @@ class fire_info(models.Model):
     longitude = models.TextField()
     city = models.TextField()
     country = models.TextField()
-    brightness_temp = models.FloatField()
-    frp = models.FloatField()
+    brightness_temp = models.TextField()
+    frp = models.TextField()
+    date = models.TextField()
 
 class fire_economic_data(models.Model):
     city = models.TextField(primary_key=True)
     country = models.TextField()
     details = models.TextField()
+    area_expected = models.TextField()
