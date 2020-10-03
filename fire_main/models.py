@@ -15,3 +15,10 @@ class fire_economic_data(models.Model):
     country = models.TextField()
     details = models.TextField()
     area_expected = models.TextField()
+
+class set_user_location(models.Model):
+    lat = models.TextField()
+    long = models.TextField()
+    city = models.TextField()
+    country = models.TextField()
+    date = models.DateTimeField()

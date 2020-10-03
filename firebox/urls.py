@@ -23,4 +23,8 @@ from fire_main import views
 urlpatterns = [
     url(r'^$',views.index,name='index'),
     path('dashboard/',views.get_user_loaction),
+    path('login_signup/',views.login_signup),
+    path('signup/',views.signup),
+    path('map_picker/',views.pick_location),
+    path('veg_data/',views.veg_data),
 ]

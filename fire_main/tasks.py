@@ -10,6 +10,17 @@ from sklearn.ensemble import RandomForestRegressor
 #from fire_main.models import fire_info
 from fire_main.models import fire_info, fire_economic_data
 logger = get_task_logger(__name__)
+
+def send_sms(sms,number):
+    url = "http://66.45.237.70/api.php?username=XX&password=XXX&number="+number+"&message="+sms
+    payload  = {}
+
+    headers = {
+
+        'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    response = requests.request("POST", url, headers=headers, data = payload)
+    print(response.text.encode('utf8'))
 def add_csv_data_to_db():
 
     # read data from csv
@@ -70,8 +81,44 @@ def add_area_prediction():
         fire.area_expected = str(result)
         fire.save()
 
+        #we will send sms here
+
 def add_data_with_wcr():
-    pass
+    result=[]
+    for pages in rage(12):
+        req = requests.get("https://wildfiretoday.com/recent-fires/page/"+pages+"/")
+
+        sp = soup(req.content,'html5lib')
+
+        data_name = sp.find_all('div',attrs={'class':"entry-content"})
+        if data_name != 0:
+            for d in data_name:
+                list=d.find_all('p')
+                temp = ""
+                for ld in list:
+                temp+=ld.getText()
+                result.append(temp)
+    fire_inf = fire_info.objects.all()
+    data1=set()
+    for d in fire_inf:
+        data1.add(d.city+","+d.country)
+    for d in data1:
+        data = d.split(",")
+        for res in result:
+            if data[0] in res:
+                nlp = spacy.load("en_core_web_sm")
+                matcher = Matcher(nlp.vocab)
+                pattern = [{"POS": "VERB"},{"POS": "ADV","op": "?"}, {"POS": "NUM"}, {"POS": "NOUN"}]
+                matcher.add("Damage", None, pattern)
+                doc1 = nlp(res)
+                matches = matcher(doc1)
+                for match_id, start, end in matches:
+                    string_id = nlp.vocab.strings[match_id]  # Get string representation
+                    span = doc1[start:end]  # The matched span
+                    if span.text!="":
+                        obj = fire_info.objects.get(city=data[0])
+                        obj.details = span.text
+                        obj.save()
 
 
 @periodic_task(run_every=(crontab(minute='*/15')),name="update_db",ignore_result=True)
